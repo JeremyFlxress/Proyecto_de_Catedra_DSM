@@ -26,13 +26,34 @@ import com.example.allan_pizza.R
 import com.example.allan_pizza.ui.components.ProductCard
 import com.example.allan_pizza.ui.components.LoginDialog
 import com.example.allan_pizza.ui.components.RegisterDialog
+import com.example.allan_pizza.ui.components.CartDialog
+import com.example.allan_pizza.ui.components.CartItem
 
 @Preview(showBackground = true)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
     // Estados de los diálogos
     var showLoginDialog by remember { mutableStateOf(false) }
     var showRegisterDialog by remember { mutableStateOf(false) }
+    var showCartDialog by remember { mutableStateOf(false) }
+
+    // Lista de items del carrito (puedes agregar más dinámicamente)
+    val cartItems = remember {
+        mutableStateListOf(
+            CartItem(
+                imageResId = R.drawable.pizza_peperoni,
+                name = "Pizza Peperoni Extra Grande",
+                price = 12.00,
+                status = "Preparando"
+            ),
+            CartItem(
+                imageResId = R.drawable.pizza_peperoni,
+                name = "Pizza Peperoni Extra Grande",
+                price = 12.00,
+                status = "Preparando"
+            )
+        )
+    }
 
     Box(
         modifier = Modifier
@@ -62,12 +83,37 @@ fun HomeScreen() {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.ShoppingCart,
-                        contentDescription = "Carrito de compras",
-                        modifier = Modifier.size(28.dp),
-                        tint = Color.Black
-                    )
+                    // Botón del carrito con badge
+                    Box {
+                        Icon(
+                            imageVector = Icons.Filled.ShoppingCart,
+                            contentDescription = "Carrito de compras",
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clickable {
+                                    showCartDialog = true
+                                },
+                            tint = Color.Black
+                        )
+
+                        // Badge con cantidad de items
+                        if (cartItems.isNotEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .background(Color.White, shape = RoundedCornerShape(50))
+                                    .align(Alignment.TopEnd),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = cartItems.size.toString(),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFE53935)
+                                )
+                            }
+                        }
+                    }
 
                     Icon(
                         imageVector = Icons.Filled.Person,
@@ -98,7 +144,7 @@ fun HomeScreen() {
                     color = Color.Black
                 )
                 Button(
-                    onClick = { /* Acción futura */ },
+                    onClick = { onNavigateToOrderVerification() },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFDD835)),
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
@@ -162,8 +208,7 @@ fun HomeScreen() {
             }
         }
 
-        // ✅ Mostrar el diálogo de inicio de sesión
-        // ✅ Mostrar el diálogo de inicio de sesión
+        // ✅ Diálogo de inicio de sesión
         if (showLoginDialog) {
             LoginDialog(
                 onDismiss = { showLoginDialog = false },
@@ -172,23 +217,33 @@ fun HomeScreen() {
                 },
                 onRegisterClick = {
                     showLoginDialog = false
-                    showRegisterDialog = true // ← Abre el registro
+                    showRegisterDialog = true
                 }
             )
         }
 
-// ✅ Mostrar el diálogo de registro
-        // ✅ Mostrar el diálogo de registro
+        // ✅ Diálogo de registro
         if (showRegisterDialog) {
             RegisterDialog(
                 onDismiss = { showRegisterDialog = false },
                 onRegisterSuccess = {
                     showRegisterDialog = false
-                    showLoginDialog = true // ← Regresa al login
+                    showLoginDialog = true
+                }
+            )
+        }
+
+        // 🛒 Diálogo del carrito
+        if (showCartDialog) {
+            CartDialog(
+                cartItems = cartItems,
+                onDismiss = { showCartDialog = false },
+                onConfirmOrder = {
+                    // Aquí puedes agregar la lógica para confirmar el pedido
+                    showCartDialog = false
+                    // Por ejemplo, mostrar un mensaje de confirmación
                 }
             )
         }
     }
 }
-
-
