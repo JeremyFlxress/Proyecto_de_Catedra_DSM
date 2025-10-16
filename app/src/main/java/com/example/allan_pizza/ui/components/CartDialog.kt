@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,19 +22,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-
-data class CartItem(
-    val imageResId: Int,
-    val name: String,
-    val price: Double,
-    val status: String = "Preparando"
-)
+import com.example.allan_pizza.data.CartItem
 
 @Composable
 fun CartDialog(
     cartItems: List<CartItem>,
     onDismiss: () -> Unit,
-    onConfirmOrder: () -> Unit
+    onConfirmOrder: () -> Unit,
+    onAddItem: (Int) -> Unit = {},
+    onRemoveItem: (Int) -> Unit = {}
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
@@ -102,10 +100,9 @@ fun CartDialog(
                     ) {
                         items(cartItems) { item ->
                             CartItemCard(
-                                imageResId = item.imageResId,
-                                name = item.name,
-                                price = item.price,
-                                status = item.status
+                                cartItem = item,
+                                onAddItem = { onAddItem(item.product.id) },
+                                onRemoveItem = { onRemoveItem(item.product.id) }
                             )
                         }
                     }
@@ -113,7 +110,7 @@ fun CartDialog(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Botón de confirmar pedido con total
-                    val total = cartItems.sumOf { it.price }
+                    val total = cartItems.sumOf { it.totalPrice }
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -154,10 +151,9 @@ fun CartDialog(
 
 @Composable
 fun CartItemCard(
-    imageResId: Int,
-    name: String,
-    price: Double,
-    status: String
+    cartItem: CartItem,
+    onAddItem: () -> Unit,
+    onRemoveItem: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -173,7 +169,7 @@ fun CartItemCard(
         ) {
             // Imagen del producto
             Image(
-                painter = painterResource(id = imageResId),
+                painter = painterResource(id = cartItem.product.imageResId),
                 contentDescription = null,
                 modifier = Modifier
                     .size(70.dp)
@@ -188,40 +184,68 @@ fun CartItemCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = name,
+                    text = cartItem.product.name,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black
                 )
                 Text(
-                    text = "Precio: ${"%.2f".format(price)}",
+                    text = "Precio unitario: $${String.format("%.2f", cartItem.product.price)}",
                     fontSize = 13.sp,
                     color = Color.Gray
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 4.dp)
-                ) {
-                    Text(
-                        text = "Estado: ",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                Color(0xFFFDD835),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 3.dp)
-                    ) {
-                        Text(
-                            text = status,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2C2C2C)
+                Text(
+                    text = "Total: $${String.format("%.2f", cartItem.totalPrice)}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE53935)
+                )
+            }
+
+            // Controles de cantidad
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                IconButton(
+                    onClick = onAddItem,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            Color(0xFFE53935),
+                            shape = RoundedCornerShape(16.dp)
                         )
-                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = "Agregar",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                
+                Text(
+                    text = cartItem.quantity.toString(),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                
+                IconButton(
+                    onClick = onRemoveItem,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            Color(0xFF757575),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Remove,
+                        contentDescription = "Quitar",
+                        tint = Color.White,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
         }

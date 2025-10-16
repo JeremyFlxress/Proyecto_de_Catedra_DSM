@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.allan_pizza.ui.screens.HomeScreen
 import com.example.allan_pizza.ui.screens.OrderVerificationScreen
+import com.example.allan_pizza.ui.screens.OrderHistoryScreen
 import com.example.allan_pizza.ui.theme.Allan_PizzaTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +41,9 @@ fun AppNavigation() {
             HomeScreen(
                 onNavigateToOrderVerification = {
                     currentScreen = "orderVerification"
+                },
+                onNavigateToOrderHistory = {
+                    currentScreen = "orderHistory"
                 }
             )
         }
@@ -52,6 +56,13 @@ fun AppNavigation() {
                 },
                 onUserClick = {
 
+                }
+            )
+        }
+        "orderHistory" -> {
+            OrderHistoryScreen(
+                onBackToHome = {
+                    currentScreen = "home"
                 }
             )
         }

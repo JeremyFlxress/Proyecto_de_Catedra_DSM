@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,33 +28,27 @@ import com.example.allan_pizza.ui.components.ProductCard
 import com.example.allan_pizza.ui.components.LoginDialog
 import com.example.allan_pizza.ui.components.RegisterDialog
 import com.example.allan_pizza.ui.components.CartDialog
-import com.example.allan_pizza.ui.components.CartItem
+import com.example.allan_pizza.ui.components.OptionsMenu
+import com.example.allan_pizza.data.ProductRepository
+import com.example.allan_pizza.viewmodel.CartViewModel
 
 @Preview(showBackground = true)
 @Composable
-fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
+fun HomeScreen(
+    onNavigateToOrderVerification: () -> Unit = {},
+    onNavigateToOrderHistory: () -> Unit = {}
+) {
     // Estados de los diálogos
     var showLoginDialog by remember { mutableStateOf(false) }
     var showRegisterDialog by remember { mutableStateOf(false) }
     var showCartDialog by remember { mutableStateOf(false) }
+    var showOptionsMenu by remember { mutableStateOf(false) }
 
-    // Lista de items del carrito (puedes agregar más dinámicamente)
-    val cartItems = remember {
-        mutableStateListOf(
-            CartItem(
-                imageResId = R.drawable.pizza_peperoni,
-                name = "Pizza Peperoni Extra Grande",
-                price = 12.00,
-                status = "Preparando"
-            ),
-            CartItem(
-                imageResId = R.drawable.pizza_peperoni,
-                name = "Pizza Peperoni Extra Grande",
-                price = 12.00,
-                status = "Preparando"
-            )
-        )
-    }
+    // ViewModel del carrito
+    val cartViewModel = remember { CartViewModel() }
+    
+    // Obtener productos del repositorio (ya ordenados por precio)
+    val products = ProductRepository.products
 
     Box(
         modifier = Modifier
@@ -97,7 +92,7 @@ fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
                         )
 
                         // Badge con cantidad de items
-                        if (cartItems.isNotEmpty()) {
+                        if (cartViewModel.totalItems > 0) {
                             Box(
                                 modifier = Modifier
                                     .size(18.dp)
@@ -106,7 +101,7 @@ fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = cartItems.size.toString(),
+                                    text = cartViewModel.totalItems.toString(),
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFE53935)
@@ -122,6 +117,18 @@ fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
                             .size(28.dp)
                             .clickable {
                                 showLoginDialog = true
+                            },
+                        tint = Color.Black
+                    )
+
+                    // Icono de menú (3 rayas)
+                    Icon(
+                        imageVector = Icons.Filled.Menu,
+                        contentDescription = "Opciones",
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clickable {
+                                showOptionsMenu = true
                             },
                         tint = Color.Black
                     )
@@ -197,11 +204,11 @@ fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(4) {
+                items(products.size) { index ->
+                    val product = products[index]
                     ProductCard(
-                        imageResId = R.drawable.pizza_peperoni,
-                        name = "Pizza Peperoni Extra Grande",
-                        price = "$12.00"
+                        product = product,
+                        onAddToCart = { cartViewModel.addToCart(product) }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
@@ -236,14 +243,32 @@ fun HomeScreen(onNavigateToOrderVerification: () -> Unit = {}) {
         // 🛒 Diálogo del carrito
         if (showCartDialog) {
             CartDialog(
-                cartItems = cartItems,
+                cartItems = cartViewModel.cartItems,
                 onDismiss = { showCartDialog = false },
                 onConfirmOrder = {
                     // Aquí puedes agregar la lógica para confirmar el pedido
                     showCartDialog = false
                     // Por ejemplo, mostrar un mensaje de confirmación
+                },
+                onAddItem = { productId -> 
+                    val product = products.find { it.id == productId }
+                    product?.let { cartViewModel.addToCart(it) }
+                },
+                onRemoveItem = { productId -> 
+                    cartViewModel.removeFromCart(productId)
                 }
             )
         }
+
+        // 📋 Menú de opciones
+        OptionsMenu(
+            isVisible = showOptionsMenu,
+            onDismiss = { showOptionsMenu = false },
+            onOrderHistoryClick = { onNavigateToOrderHistory() },
+            onLogoutClick = {
+                // Aquí puedes agregar la lógica para cerrar sesión
+                // Por ahora solo mostramos un mensaje
+            }
+        )
     }
 }
