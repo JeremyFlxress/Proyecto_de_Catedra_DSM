@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "841057753225",
+    "project_id": "allan-pizza",
+    "storage_bucket": "allan-pizza.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841057753225:android:97165c96a67a2c303d8e58",
+        "android_client_info": {
+          "package_name": "com.example.allan_pizza"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841057753225-sfn46qd9l465svav3ir91p5sb8jh6u5v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNdsMh7rsUjxOMRLfV-mCpM5Gu50mNeV0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841057753225-sfn46qd9l465svav3ir91p5sb8jh6u5v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
