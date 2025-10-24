@@ -10,22 +10,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+// --- IMPORTACIÓN AÑADIDA ---
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.clickable
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.allan_pizza.viewmodel.AuthUiState
+import com.example.allan_pizza.viewmodel.AuthViewModel
 
 @Composable
 fun LoginDialog(
     onDismiss: () -> Unit,
-    onLogin: (String, String) -> Unit,
-    onRegisterClick: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onRegisterClick: () -> Unit,
+    authViewModel: AuthViewModel = viewModel() // Obtiene el ViewModel
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    Dialog(onDismissRequest = { onDismiss() }) {
+    // Observa el estado de la UI del ViewModel
+    val uiState by authViewModel.uiState.collectAsState()
+    val isLoading = uiState is AuthUiState.Loading
+
+    // Efecto para reaccionar al éxito del login y resetear el estado
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.Success) {
+            onLoginSuccess() // Cierra el diálogo
+            authViewModel.resetState() // Resetea el estado para la próxima vez
+        }
+    }
+
+    Dialog(onDismissRequest = {
+        authViewModel.resetState() // Resetea también si se cierra manually
+        onDismiss()
+    }) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -44,59 +66,46 @@ fun LoginDialog(
                 )
 
                 // Campo de Email
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Email", fontWeight = FontWeight.SemiBold, color = Color.Black)
-                    TextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, Color.Black, RoundedCornerShape(8.dp)),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        )
+                LoginTextField("Email", email, !isLoading) { email = it }
+
+                // Campo de Contraseña
+                LoginTextField("Contraseña", password, !isLoading, isPassword = true) { password = it }
+
+                // Muestra de Errores
+                if (uiState is AuthUiState.Error) {
+                    Text(
+                        text = (uiState as AuthUiState.Error).message,
+                        color = Color.Red,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
-
-// Campo de Contraseña
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = "Contraseña", fontWeight = FontWeight.SemiBold, color = Color.Black)
-                    TextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(1.dp, Color.Black, RoundedCornerShape(8.dp)),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        )
-                    )
-                }
-
 
                 // Botón de Ingresar
                 Button(
-                    onClick = { onLogin(email, password) },
+                    onClick = {
+                        authViewModel.loginUser(email, password)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(10.dp),
+                    enabled = !isLoading // Deshabilitado mientras carga
                 ) {
-                    Text(
-                        text = "Ingresar",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "Ingresar",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
 
                 // Enlace de registro
@@ -105,9 +114,44 @@ fun LoginDialog(
                     color = Color.Black,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.clickable { onRegisterClick() }
+                    modifier = Modifier.clickable(enabled = !isLoading) { onRegisterClick() }
                 )
             }
         }
     }
 }
+
+// TextField reutilizable para este diálogo
+@Composable
+private fun LoginTextField(
+    label: String,
+    value: String,
+    enabled: Boolean = true,
+    isPassword: Boolean = false,
+    onValueChange: (String) -> Unit
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(text = label, fontWeight = FontWeight.SemiBold, color = Color.Black)
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            enabled = enabled,
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, Color.Black, RoundedCornerShape(8.dp)),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                disabledContainerColor = Color(0xFFE0E0E0),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent
+            ),
+            // --- CORRECCIÓN AQUÍ ---
+            // Era PasswordVisualTransformation.None, se cambió a VisualTransformation.None
+            visualTransformation = if (isPassword) PasswordVisualTransformation() else VisualTransformation.None
+        )
+    }
+}
+

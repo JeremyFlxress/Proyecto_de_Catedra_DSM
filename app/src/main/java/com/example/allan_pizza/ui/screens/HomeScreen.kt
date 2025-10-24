@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle // Importado
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Menu
@@ -23,31 +24,40 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel // Importado
 import com.example.allan_pizza.R
 import com.example.allan_pizza.ui.components.ProductCard
 import com.example.allan_pizza.ui.components.LoginDialog
 import com.example.allan_pizza.ui.components.RegisterDialog
 import com.example.allan_pizza.ui.components.CartDialog
 import com.example.allan_pizza.ui.components.OptionsMenu
+import com.example.allan_pizza.ui.components.ProfileDialog // Importado
 import com.example.allan_pizza.data.ProductRepository
+import com.example.allan_pizza.viewmodel.AuthViewModel // Importado
 import com.example.allan_pizza.viewmodel.CartViewModel
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class) // Añadido para TopAppBar
 @Composable
 fun HomeScreen(
     onNavigateToOrderVerification: () -> Unit = {},
     onNavigateToOrderHistory: () -> Unit = {}
 ) {
-    // Estados de los diálogos
+    // --- LÓGICA DE VIEWMODELS ---
+    val cartViewModel = remember { CartViewModel() }
+    val authViewModel: AuthViewModel = viewModel() // ViewModel de Autenticación
+
+    // --- ESTADOS DE AUTENTICACIÓN ---
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
+
+    // --- ESTADOS DE DIÁLOGOS ---
     var showLoginDialog by remember { mutableStateOf(false) }
     var showRegisterDialog by remember { mutableStateOf(false) }
     var showCartDialog by remember { mutableStateOf(false) }
     var showOptionsMenu by remember { mutableStateOf(false) }
+    var showProfileDialog by remember { mutableStateOf(false) } // Nuevo estado para perfil
 
-    // ViewModel del carrito
-    val cartViewModel = remember { CartViewModel() }
-    
-    // Obtener productos del repositorio (ya ordenados por precio)
+    // Obtener productos del repositorio
     val products = ProductRepository.products
 
     Box(
@@ -57,7 +67,7 @@ fun HomeScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // 🔺 Header superior
+            // 🔺 Header superior (SIN CAMBIOS DE ESTILO)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -67,18 +77,29 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Allan Pizza",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                // --- CAMBIO DE LÓGICA: Nombre de usuario ---
+                // Muestra el nombre si está logueado, sino el título
+                if (isLoggedIn && currentUser != null) {
+                    Text(
+                        text = "¡Hola, ${currentUser!!.nombre}!",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                } else {
+                    Text(
+                        text = "Allan Pizza",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Botón del carrito con badge
+                    // Botón del carrito con badge (SIN CAMBIOS)
                     Box {
                         Icon(
                             imageVector = Icons.Filled.ShoppingCart,
@@ -90,8 +111,6 @@ fun HomeScreen(
                                 },
                             tint = Color.Black
                         )
-
-                        // Badge con cantidad de items
                         if (cartViewModel.totalItems > 0) {
                             Box(
                                 modifier = Modifier
@@ -110,32 +129,42 @@ fun HomeScreen(
                         }
                     }
 
+                    // --- CAMBIO DE LÓGICA: Icono de Persona/Perfil ---
                     Icon(
-                        imageVector = Icons.Filled.Person,
-                        contentDescription = "Usuario",
+                        // Cambia el ícono si está logueado
+                        imageVector = if (isLoggedIn) Icons.Default.AccountCircle else Icons.Filled.Person,
+                        contentDescription = if (isLoggedIn) "Perfil" else "Usuario",
                         modifier = Modifier
                             .size(28.dp)
                             .clickable {
-                                showLoginDialog = true
+                                // Muestra perfil si está logueado, sino login
+                                if (isLoggedIn) {
+                                    showProfileDialog = true
+                                } else {
+                                    showLoginDialog = true
+                                }
                             },
                         tint = Color.Black
                     )
 
-                    // Icono de menú (3 rayas)
-                    Icon(
-                        imageVector = Icons.Filled.Menu,
-                        contentDescription = "Opciones",
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clickable {
-                                showOptionsMenu = true
-                            },
-                        tint = Color.Black
-                    )
+                    // --- CAMBIO DE LÓGICA: Icono de Menú ---
+                    // Solo muestra el menú si el usuario ha iniciado sesión
+                    if (isLoggedIn) {
+                        Icon(
+                            imageVector = Icons.Filled.Menu,
+                            contentDescription = "Opciones",
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clickable {
+                                    showOptionsMenu = true
+                                },
+                            tint = Color.Black
+                        )
+                    }
                 }
             }
 
-            // 🟡 Estado de la orden
+            // 🟡 Estado de la orden (SIN CAMBIOS)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,6 +173,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                // ... (tu código de "Estado de tu orden" no se toca) ...
                 Text(
                     text = "Estado de tu orden",
                     fontSize = 16.sp,
@@ -165,7 +195,7 @@ fun HomeScreen(
                 }
             }
 
-            // 🖼️ Banner
+            // 🖼️ Banner (SIN CAMBIOS)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -184,7 +214,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 🍕 Título
+            // 🍕 Título (SIN CAMBIOS)
             Text(
                 text = "Menú",
                 fontSize = 22.sp,
@@ -196,7 +226,7 @@ fun HomeScreen(
                     .padding(vertical = 8.dp)
             )
 
-            // 📋 Lista de productos
+            // 📋 Lista de productos (SIN CAMBIOS)
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -213,13 +243,16 @@ fun HomeScreen(
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
-        }
+        } // Fin de Column principal
 
-        // ✅ Diálogo de inicio de sesión
+        // --- MANEJO DE DIÁLOGOS (DENTRO DEL BOX) ---
+
+        // ✅ Diálogo de inicio de sesión (CONECTADO)
         if (showLoginDialog) {
             LoginDialog(
+                authViewModel = authViewModel, // <-- Conectado
                 onDismiss = { showLoginDialog = false },
-                onLogin = { email, password ->
+                onLoginSuccess = {
                     showLoginDialog = false
                 },
                 onRegisterClick = {
@@ -229,9 +262,10 @@ fun HomeScreen(
             )
         }
 
-        // ✅ Diálogo de registro
+        // ✅ Diálogo de registro (CONECTADO)
         if (showRegisterDialog) {
             RegisterDialog(
+                authViewModel = authViewModel, // <-- Conectado
                 onDismiss = { showRegisterDialog = false },
                 onRegisterSuccess = {
                     showRegisterDialog = false
@@ -240,35 +274,51 @@ fun HomeScreen(
             )
         }
 
-        // 🛒 Diálogo del carrito
+        // 🛒 Diálogo del carrito (SIN CAMBIOS)
         if (showCartDialog) {
+            // ... (tu código del CartDialog no se toca) ...
             CartDialog(
                 cartItems = cartViewModel.cartItems,
                 onDismiss = { showCartDialog = false },
                 onConfirmOrder = {
-                    // Aquí puedes agregar la lógica para confirmar el pedido
                     showCartDialog = false
-                    // Por ejemplo, mostrar un mensaje de confirmación
                 },
-                onAddItem = { productId -> 
+                onAddItem = { productId ->
                     val product = products.find { it.id == productId }
                     product?.let { cartViewModel.addToCart(it) }
                 },
-                onRemoveItem = { productId -> 
+                onRemoveItem = { productId ->
                     cartViewModel.removeFromCart(productId)
                 }
             )
         }
 
-        // 📋 Menú de opciones
+        // 📋 Menú de opciones (CONECTADO)
         OptionsMenu(
             isVisible = showOptionsMenu,
             onDismiss = { showOptionsMenu = false },
-            onOrderHistoryClick = { onNavigateToOrderHistory() },
+            onOrderHistoryClick = { onNavigateToOrderHistory() }, // Ya estaba bien
             onLogoutClick = {
-                // Aquí puedes agregar la lógica para cerrar sesión
-                // Por ahora solo mostramos un mensaje
+                // --- CAMBIO DE LÓGICA: Logout ---
+                authViewModel.logout()
+                // El onDismiss se maneja dentro del OptionsMenu, así que no hace falta
             }
         )
-    }
+
+        // 📇 (NUEVO) Diálogo de Perfil
+        if (showProfileDialog) {
+            currentUser?.let { user ->
+                ProfileDialog(
+                    user = user,
+                    onDismiss = { showProfileDialog = false },
+                    onLogout = {
+                        authViewModel.logout() // Llama al logout
+                        showProfileDialog = false // Cierra el diálogo
+                    }
+                )
+            }
+        }
+
+    } // Fin de Box principal
 }
+
