@@ -22,15 +22,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import coil.compose.AsyncImage // Importar AsyncImage de Coil
 import com.example.allan_pizza.data.CartItem
+import com.example.allan_pizza.R // Importar R para los placeholders
 
 @Composable
 fun CartDialog(
     cartItems: List<CartItem>,
+    totalPrice: Double, // Recibir el total calculado desde el ViewModel
     onDismiss: () -> Unit,
     onConfirmOrder: () -> Unit,
-    onAddItem: (Int) -> Unit = {},
-    onRemoveItem: (Int) -> Unit = {}
+    onAddItem: (String) -> Unit = {},    // CAMBIO: de Int a String
+    onRemoveItem: (String) -> Unit = {}  // CAMBIO: de Int a String
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Box(
@@ -38,7 +41,7 @@ fun CartDialog(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .background(Color.White, shape = RoundedCornerShape(16.dp))
-                .padding(20.dp)
+                .padding(0.dp) // Reducido para que el Card ocupe todo
         ) {
             Card(
                 modifier = Modifier
@@ -52,9 +55,9 @@ fun CartDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(20.dp)
+                        .padding(20.dp) // Padding aplicado aquí dentro
                 ) {
-                    // Header del carrito
+                    // Header del carrito (Sin cambios)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -101,6 +104,7 @@ fun CartDialog(
                         items(cartItems) { item ->
                             CartItemCard(
                                 cartItem = item,
+                                // CAMBIO: Pasa el ID como String
                                 onAddItem = { onAddItem(item.product.id) },
                                 onRemoveItem = { onRemoveItem(item.product.id) }
                             )
@@ -110,7 +114,8 @@ fun CartDialog(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     // Botón de confirmar pedido con total
-                    val total = cartItems.sumOf { it.totalPrice }
+                    // CAMBIO: Usar el totalPrice del ViewModel
+                    // val total = cartItems.sumOf { it.totalPrice } // -> Esta lógica ahora está en el VM
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -137,7 +142,8 @@ fun CartDialog(
                         Spacer(modifier = Modifier.width(12.dp))
 
                         Text(
-                            text = "Total: ${"%.2f".format(total)}",
+                            // CAMBIO: Formatear el total recibido
+                            text = "Total: $${"%.2f".format(totalPrice)}",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black
@@ -167,19 +173,22 @@ fun CartItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Imagen del producto
-            Image(
-                painter = painterResource(id = cartItem.product.imageResId),
-                contentDescription = null,
+            // CAMBIO: Cargar imagen desde URL con Coil
+            AsyncImage(
+                model = cartItem.product.imageUrl, // Carga la URL
+                contentDescription = cartItem.product.name,
                 modifier = Modifier
                     .size(70.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                // Placeholder por si falla la carga
+                placeholder = painterResource(id = R.drawable.pizza_peperoni), // Asumiendo que tienes este drawable
+                error = painterResource(id = R.drawable.pizza_peperoni) // Asumiendo que tienes este drawable
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Información del producto
+            // Información del producto (Sin cambios)
             Column(
                 modifier = Modifier.weight(1f)
             ) {
@@ -202,7 +211,7 @@ fun CartItemCard(
                 )
             }
 
-            // Controles de cantidad
+            // Controles de cantidad (Sin cambios)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -222,7 +231,7 @@ fun CartItemCard(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-                
+
                 Text(
                     text = cartItem.quantity.toString(),
                     fontSize = 16.sp,
@@ -230,7 +239,7 @@ fun CartItemCard(
                     color = Color.Black,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
-                
+
                 IconButton(
                     onClick = onRemoveItem,
                     modifier = Modifier
@@ -251,3 +260,4 @@ fun CartItemCard(
         }
     }
 }
+

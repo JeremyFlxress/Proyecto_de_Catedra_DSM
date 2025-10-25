@@ -59,16 +59,23 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    // Para viewModel() en Compose (`Unresolved reference 'compose' / 'viewModel'`)
+    // --- DEPENDENCIAS QUE AÑADIMOS ---
+
+    // BOM de Firebase (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+
+    // Para viewModel() en Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
 
-    // Para Firebase Auth KTX (`Unresolved reference 'ktx' / 'auth'`)
-    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    // Para Firebase Auth KTX (`.auth`)
     implementation("com.google.firebase:firebase-auth-ktx")
 
-    // Para Firestore KTX (`Unresolved reference 'firestore'`)
+    // Para Firestore KTX (`.firestore`)
     implementation("com.google.firebase:firebase-firestore-ktx")
 
-    // Para .await() en tareas de Firebase (`None of the following candidates is applicable: suspend fun <T> Task<T>.await(): T`)
+    // Para .await() en tareas de Firebase
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
+
+    // Para cargar imágenes desde URL (AsyncImage)
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

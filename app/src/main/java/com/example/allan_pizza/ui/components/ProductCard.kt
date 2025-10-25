@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage // <-- 1. IMPORTAR COIL
 import com.example.allan_pizza.data.Product
+import com.example.allan_pizza.R // <-- 2. IMPORTAR R PARA LOS PLACEHOLDERS
 
 @Composable
 fun ProductCard(
@@ -48,19 +50,21 @@ fun ProductCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Imagen del producto
-            Image(
-                painter = painterResource(id = product.imageResId),
-                contentDescription = null,
+            // --- 3. CAMBIO DE IMAGE A ASYNCIMAGE ---
+            AsyncImage(
+                model = product.imageUrl, // Usa la URL
+                contentDescription = product.name,
                 modifier = Modifier
                     .size(76.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                // Añadimos placeholders por si la imagen falla o tarda en cargar
+                error = painterResource(id = R.drawable.pizza_peperoni)
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Información del producto
+            // Información del producto (Sin cambios)
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
@@ -73,10 +77,10 @@ fun ProductCard(
                     textAlign = TextAlign.Start,
                     lineHeight = 18.sp
                 )
-                
+
                 Spacer(modifier = Modifier.height(4.dp))
-                
-                // Precio con el estilo amarillo exacto
+
+                // Precio (Sin cambios)
                 Box(
                     modifier = Modifier
                         .wrapContentWidth()
@@ -102,7 +106,7 @@ fun ProductCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Botón de agregar al carrito
+            // Botón de agregar al carrito (Sin cambios)
             IconButton(
                 onClick = { onAddToCart(product) },
                 modifier = Modifier
