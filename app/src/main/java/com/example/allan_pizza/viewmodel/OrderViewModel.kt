@@ -18,6 +18,11 @@ import kotlinx.coroutines.tasks.await
 
 class OrderViewModel : ViewModel() {
 
+    fun resetActiveOrder() {
+        _activeOrder.value = null
+    }
+
+
     private val auth: FirebaseAuth = Firebase.auth
     private val db: FirebaseFirestore = Firebase.firestore
 
@@ -126,6 +131,7 @@ class OrderViewModel : ViewModel() {
             }
         }
     }
+
 
 
     override fun onCleared() {

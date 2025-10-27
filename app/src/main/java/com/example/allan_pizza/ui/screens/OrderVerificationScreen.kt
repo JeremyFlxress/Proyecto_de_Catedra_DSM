@@ -1,7 +1,10 @@
 package com.example.allan_pizza.ui.screens
 
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -139,22 +142,21 @@ fun OrderVerificationScreen(
 
             // Contenido scrolleable
             if (activeOrder == null) {
-                // Estado de carga o si no hay pedido
+
+                // --- ¡ESTE BLOQUE HA CAMBIADO! ---
+                // En lugar de "No hay pedido", mostramos un 'loading'
                 Box(
                     modifier = Modifier.fillMaxSize().padding(16.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // --- CAMBIO: Mejorar el mensaje de "no pedido" ---
-                        Image(
-                            painter = painterResource(id = R.drawable.pizza_peperoni), // Asume que tienes un drawable para esto
-                            contentDescription = "No hay pedido",
-                            modifier = Modifier.size(120.dp),
-                            alpha = 0.7f
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(48.dp),
+                            color = Color(0xFFE53935) // Color rojo de tu app
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "No tienes ningún pedido activo en este momento.",
+                            text = "Procesando tu pedido...",
                             fontSize = 16.sp,
                             color = Color.Gray,
                             textAlign = TextAlign.Center
@@ -178,7 +180,7 @@ fun OrderVerificationScreen(
                     "${it.quantity}x ${it.productName}"
                 }
                 // Coge la imagen del primer producto
-                val imageUrl = order.items.firstOrNull()?.productImageUrl
+                val pagerState = rememberPagerState(pageCount = { order.items.size })
 
                 Column(
                     modifier = Modifier
@@ -193,18 +195,54 @@ fun OrderVerificationScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // 🖼️ Imagen de la pizza (dinámica)
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = "Imagen del producto",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop,
-                        placeholder = painterResource(id = R.drawable.pizza_peperoni),
-                        error = painterResource(id = R.drawable.pizza_peperoni)
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        // El Carrusel (Pager)
+                        HorizontalPager(
+                            state = pagerState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                        ) { pageIndex ->
+                            // 'pageIndex' es el número de la página (0, 1, 2...)
+                            val currentItem = order.items[pageIndex]
 
+                            AsyncImage(
+                                model = currentItem.productImageUrl,
+                                contentDescription = currentItem.productName,
+                                modifier = Modifier
+                                    .fillMaxSize() // Ocupa todo el Pager
+                                    .background(Color(0xFFFAFAFA)),
+                                contentScale = ContentScale.Crop, // Crop se ve mejor
+                                placeholder = painterResource(id = R.drawable.ic_launcher_foreground),
+                                error = painterResource(id = R.drawable.ic_launcher_foreground)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Los indicadores (puntitos)
+                        Row(
+                            Modifier.wrapContentHeight(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Dibuja un punto por cada página
+                            repeat(pagerState.pageCount) { iteration ->
+                                val color = if (pagerState.currentPage == iteration) Color(0xFFE53935) else Color.LightGray
+                                Box(
+                                    modifier = Modifier
+                                        .padding(2.dp)
+                                        .clip(CircleShape)
+                                        .background(color)
+                                        .size(10.dp)
+                                )
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
 
                     // 📝 Campo: Nombre (dinámico)

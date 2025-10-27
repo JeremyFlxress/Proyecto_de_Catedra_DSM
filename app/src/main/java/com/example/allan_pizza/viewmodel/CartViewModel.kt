@@ -125,7 +125,7 @@ class CartViewModel : ViewModel() {
     /**
      * Crea un nuevo documento de "pedido" en Firestore y luego limpia el carrito.
      */
-    fun createOrder(user: com.example.allan_pizza.data.UserModel) {
+    fun createOrder(user: com.example.allan_pizza.data.UserModel, paymentMethod: String) {
         val userId = auth.currentUser?.uid ?: return
         val currentCartItems = _cartItems.value
         val currentTotalPrice = _totalPrice.value
@@ -157,7 +157,7 @@ class CartViewModel : ViewModel() {
                     items = orderItems,
                     totalPrice = currentTotalPrice,
                     status = "En preparación", // Estado inicial
-                    paymentMethod = "Efectivo",   // Asumido de tu UI
+                    paymentMethod = paymentMethod,   // Asumido de tu UI
                     timestamp = com.google.firebase.Timestamp.now()
                 )
 

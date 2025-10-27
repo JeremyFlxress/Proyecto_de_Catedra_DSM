@@ -43,31 +43,19 @@ import com.example.allan_pizza.viewmodel.CartViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    // --- CAMBIO: Recibimos los ViewModels como parámetros ---
     authViewModel: AuthViewModel,
     cartViewModel: CartViewModel,
-    // ---
     onNavigateToOrderVerification: () -> Unit = {},
-    onNavigateToOrderHistory: () -> Unit = {}
+    onNavigateToOrderHistory: () -> Unit = {},
+    onNavigateToCheckout: () -> Unit
 ) {
     val productRepository = remember { ProductRepository() }
-
-    // --- ELIMINADO: Ya no creamos los ViewModels aquí ---
-    // val cartViewModel: CartViewModel = viewModel()
-    // val authViewModel: AuthViewModel = viewModel()
-
-    // El resto del código funciona igual, porque usa los ViewModels
-    // que ahora se reciben como parámetros.
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
-
     val cartItems by cartViewModel.cartItems.collectAsState()
     val totalCartItems by cartViewModel.totalItems.collectAsState()
     val totalCartPrice by cartViewModel.totalPrice.collectAsState()
-
     val products by productRepository.productsFlow.collectAsState()
-
-    // Lista de banners para el carrusel
     val banners = remember {
         listOf(
             BannerItem(
@@ -106,7 +94,7 @@ fun HomeScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // 🔺 Header superior
+            //  Header superior
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -313,15 +301,16 @@ fun HomeScreen(
                 onConfirmOrder = {
                     val user = authViewModel.currentUser.value
                     if (user != null) {
-                        // 1. Crea el pedido
-                        cartViewModel.createOrder(user)
-                        // 2. Cierra el diálogo
+                        // 1. Cierra el diálogo
                         showCartDialog = false
-                        // 3. Navega a la pantalla de verificación
-                        onNavigateToOrderVerification()
+                        // 2. Navega a la nueva pantalla de Checkout
+                        onNavigateToCheckout()
                     } else {
+                        // Si no está logueado, lo mandamos a loguear
+                        showCartDialog = false // Cierra también el carrito
                         showLoginDialog = true
                     }
+                    // --- FIN DE LA MODIFICACIÓN ---
                 },
                 onAddItem = { productId ->
                     val product = products.find { it.id == productId }
