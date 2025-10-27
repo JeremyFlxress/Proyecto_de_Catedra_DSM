@@ -30,7 +30,7 @@ fun ProfileDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF81C784), shape = RoundedCornerShape(16.dp)) // Verde
+                .background(Color(0xFFFFE584), shape = RoundedCornerShape(16.dp))
                 .padding(24.dp)
         ) {
             Column(
@@ -51,6 +51,7 @@ fun ProfileDialog(
                 InfoRow(icon = Icons.Default.Home, text = user.direccion)
 
                 Spacer(modifier = Modifier.height(8.dp))
+                
 
                 // Botón de Cerrar Sesión
                 Button(

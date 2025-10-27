@@ -218,17 +218,17 @@ fun CartItemCard(
                 IconButton(
                     onClick = onAddItem,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(35.dp)
                         .background(
                             Color(0xFFE53935),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(14.dp)
                         )
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = "Agregar",
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
 
@@ -243,17 +243,17 @@ fun CartItemCard(
                 IconButton(
                     onClick = onRemoveItem,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(35.dp)
                         .background(
                             Color(0xFF757575),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(14.dp)
                         )
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Remove,
                         contentDescription = "Quitar",
                         tint = Color.White,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                 }
             }

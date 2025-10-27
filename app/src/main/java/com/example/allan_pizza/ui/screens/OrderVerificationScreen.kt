@@ -1,5 +1,6 @@
 package com.example.allan_pizza.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,6 +52,11 @@ fun OrderVerificationScreen(
 
     // --- ESTADO DEL PEDIDO (Leído del ViewModel recibido) ---
     val activeOrder by orderViewModel.activeOrder.collectAsState()
+
+    // --- MANEJO DEL BOTÓN DE RETROCESO DEL DISPOSITIVO ---
+    BackHandler {
+        onBackToHome()
+    }
 
     // --- LÓGICA DE AUTO-REGRESO ---
     // (Esta parte ya estaba bien)

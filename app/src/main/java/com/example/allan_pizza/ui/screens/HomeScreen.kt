@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel // Sigue siendo necesario para el preview
 import com.example.allan_pizza.R
+import com.example.allan_pizza.ui.components.AutoCarousel
+import com.example.allan_pizza.ui.components.BannerItem
 import com.example.allan_pizza.ui.components.ProductCard
 import com.example.allan_pizza.ui.components.LoginDialog
 import com.example.allan_pizza.ui.components.RegisterDialog
@@ -36,6 +38,7 @@ import com.example.allan_pizza.data.ProductRepository
 import com.example.allan_pizza.data.Product
 import com.example.allan_pizza.viewmodel.AuthViewModel
 import com.example.allan_pizza.viewmodel.CartViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +66,32 @@ fun HomeScreen(
     val totalCartPrice by cartViewModel.totalPrice.collectAsState()
 
     val products by productRepository.productsFlow.collectAsState()
+
+    // Lista de banners para el carrusel
+    val banners = remember {
+        listOf(
+            BannerItem(
+                imageRes = R.drawable.combo_banner,
+                title = "¡Combo Especial!",
+                subtitle = "2 Pizzas + Bebida por solo $25.99"
+            ),
+            BannerItem(
+                imageRes = R.drawable.pizza_peperoni,
+                title = "Pizza del Día",
+                subtitle = "Pepperoni Extra Grande - $18.99"
+            ),
+            BannerItem(
+                imageRes = R.drawable.combo_banner,
+                title = "Delivery Gratis",
+                subtitle = "En pedidos mayores a $30"
+            ),
+            BannerItem(
+                imageRes = R.drawable.pizza_peperoni,
+                title = "20% de Descuento",
+                subtitle = "En tu primera orden"
+            )
+        )
+    }
 
     var showLoginDialog by remember { mutableStateOf(false) }
     var showRegisterDialog by remember { mutableStateOf(false) }
@@ -200,22 +229,15 @@ fun HomeScreen(
                 }
             }
 
-            // 🖼️ Banner
-            Box(
+            // 🖼️ Carrusel de Banners
+            AutoCarousel(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.combo_banner),
-                    contentDescription = "Banner de promoción",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                banners = banners,
+                autoScrollDelay = 3000L, // 3 segundos
+                height = 120
+            )
 
             Spacer(modifier = Modifier.height(8.dp))
 
