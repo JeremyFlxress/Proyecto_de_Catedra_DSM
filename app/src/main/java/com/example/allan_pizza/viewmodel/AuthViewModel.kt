@@ -173,4 +173,3 @@ class AuthViewModel : ViewModel() {
         auth.removeAuthStateListener(authStateListener)
     }
 }
-

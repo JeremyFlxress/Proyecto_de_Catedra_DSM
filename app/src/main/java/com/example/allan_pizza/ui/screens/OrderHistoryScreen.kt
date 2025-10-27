@@ -8,8 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
@@ -25,39 +23,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+// --- NUEVO: Importar los data models reales ---
+import com.example.allan_pizza.data.Order
+import com.example.allan_pizza.data.OrderItem
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-data class OrderItem(
-    val productName: String,
-    val quantity: Int,
-    val total: String
-)
+// --- ELIMINADO: Ya no necesitamos las data class de ejemplo ---
 
-data class Order(
-    val date: String,
-    val items: List<OrderItem>
-)
+// --- NUEVO: Función helper para formatear la fecha ---
+private fun formatTimestamp(timestamp: Timestamp): String {
+    // Formato: "martes, 26 de Agosto de 2025"
+    val sdf = SimpleDateFormat("EEEE, dd 'de' MMMM 'de' yyyy", Locale("es", "ES"))
+    return sdf.format(timestamp.toDate())
+}
 
-@Preview(showBackground = true)
+// --- CAMBIO: La firma de la función ahora acepta la lista real ---
 @Composable
 fun OrderHistoryScreen(
+    orders: List<Order>, // <-- Acepta la lista real
     onBackToHome: () -> Unit = {}
 ) {
-    // Datos de ejemplo
-    val orders = listOf(
-        Order(
-            date = "martes, 26 de Agosto de 2025",
-            items = listOf(
-                OrderItem("Pizza Peperoni extra grande", 2, "$24.00"),
-                OrderItem("Pizza Peperoni extra grande", 2, "$24.00")
-            )
-        ),
-        Order(
-            date = "Sábado, 30 de Agosto de 2025",
-            items = listOf(
-                OrderItem("Pizza Peperoni extra grande", 2, "$24.00")
-            )
-        )
-    )
+
+    // --- ELIMINADO: Ya no necesitamos los datos de ejemplo ---
 
     Box(
         modifier = Modifier
@@ -67,7 +56,7 @@ fun OrderHistoryScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top Bar
+            // Top Bar (Sin cambios)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,7 +66,6 @@ fun OrderHistoryScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                // Botón de regreso
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Regresar",
@@ -100,7 +88,7 @@ fun OrderHistoryScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Título "Historial de pedidos"
+            // Título "Historial de pedidos" (Sin cambios)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -139,61 +127,80 @@ fun OrderHistoryScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Lista de pedidos
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                orders.forEach { order ->
-                    // Fecha
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    Color(0xFFE0E0E0),
-                                    shape = RoundedCornerShape(8.dp)
+            // --- CAMBIO: Lista de pedidos con datos reales ---
+            if (orders.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Aún no tienes pedidos en tu historial.",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Iteramos sobre la lista real de pedidos
+                    orders.forEach { order ->
+                        // Fecha
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        Color(0xFFE0E0E0),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(vertical = 12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    // Formateamos el Timestamp real
+                                    text = formatTimestamp(order.timestamp),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color.Black,
+                                    textAlign = TextAlign.Center
                                 )
-                                .padding(vertical = 12.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = order.date,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black,
-                                textAlign = TextAlign.Center
+                            }
+                        }
+
+                        // Items de la orden
+                        items(order.items) { item ->
+                            // Pasamos los datos reales al OrderCard
+                            OrderCard(
+                                productName = item.productName,
+                                quantity = item.quantity,
+                                // Calculamos el total de este item
+                                total = item.quantity * item.unitPrice
                             )
                         }
                     }
 
-                    // Items de la orden
-                    items(order.items) { item ->
-                        OrderCard(
-                            productName = item.productName,
-                            quantity = item.quantity,
-                            total = item.total
-                        )
+                    // Espacio final
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
-                }
-
-                // Espacio final
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
 }
 
+// --- CAMBIO: OrderCard ahora recibe un Double para el total ---
 @Composable
 fun OrderCard(
     productName: String,
     quantity: Int,
-    total: String
+    total: Double // <-- Cambiado de String a Double
 ) {
     Card(
         modifier = Modifier
@@ -231,7 +238,8 @@ fun OrderCard(
                 textAlign = TextAlign.Center
             )
             Text(
-                text = "Total: $total",
+                // Formateamos el total a 2 decimales
+                text = "Total: $%.2f".format(total),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFD32F2F),
@@ -239,4 +247,30 @@ fun OrderCard(
             )
         }
     }
+}
+
+
+// --- AÑADIDO UN PREVIEW (opcional pero recomendado) ---
+@Preview(showBackground = true)
+@Composable
+fun OrderHistoryScreenPreview() {
+    // Creamos datos de ejemplo solo para el preview
+    val previewOrders = listOf(
+        Order(
+            id = "1",
+            timestamp = Timestamp.now(),
+            items = listOf(
+                OrderItem(productName = "Pizza Peperoni", quantity = 2, unitPrice = 12.0),
+                OrderItem(productName = "Coca Cola", quantity = 1, unitPrice = 1.5)
+            )
+        ),
+        Order(
+            id = "2",
+            timestamp = Timestamp.now(),
+            items = listOf(
+                OrderItem(productName = "Pizza Suprema", quantity = 1, unitPrice = 14.0)
+            )
+        )
+    )
+    OrderHistoryScreen(orders = previewOrders, onBackToHome = {})
 }
