@@ -13,7 +13,7 @@ El seguimiento de tareas, el *backlog* y la planificación del desarrollo se ges
 * **Enlace al Tablero de Trello/Notion:**  https://trello.com/invite/b/67cb724acd02a97d37bb1e9b/ATTI0fc86dc9435812a25a9a8b66b1739481BA223874/app-de-allan-pizza
 ---
 
-##  deliverables
+##  Entregables
 
 A continuación se encuentran los enlaces a los entregables clave del proyecto:
 
