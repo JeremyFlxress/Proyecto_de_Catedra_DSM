@@ -18,6 +18,8 @@ import com.example.allan_pizza.viewmodel.AuthViewModel
 import com.example.allan_pizza.viewmodel.CartViewModel
 import com.example.allan_pizza.viewmodel.OrderViewModel
 import com.example.allan_pizza.ui.screens.CheckoutScreen
+import com.example.allan_pizza.ui.screens.ComboDetailScreen
+import com.example.allan_pizza.data.Product
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +42,7 @@ class MainActivity : ComponentActivity() {
 fun AppNavigation() {
     // Estado para controlar qué pantalla mostrar
     var currentScreen by remember { mutableStateOf("home") }
+    var selectedCombo by remember { mutableStateOf<Product?>(null) }
 
     // --- Los ViewModels (esto ya estaba perfecto) ---
     val authViewModel: AuthViewModel = viewModel()
@@ -64,11 +67,31 @@ fun AppNavigation() {
                 // --- 1. AÑADIMOS EL NUEVO NAVEGADOR ---
                 onNavigateToCheckout = {
                     currentScreen = "checkout"
+                },
+                onComboClick = { product ->
+                    selectedCombo = product // Guarda el combo
+                    currentScreen = "comboDetail" // Cambia de pantalla
                 }
             )
         }
 
-        // --- 2. AÑADIMOS EL NUEVO CASO "checkout" ---
+        "comboDetail" -> {
+            // Nos aseguramos de que el combo no sea nulo
+            selectedCombo?.let { product ->
+                ComboDetailScreen(
+                    product = product,
+                    onBack = {
+                        currentScreen = "home"
+                        selectedCombo = null // Limpia la selección
+                    }
+                )
+            } ?: run {
+                // Si es nulo por algún error, regresa a home
+                currentScreen = "home"
+            }
+        }
+
+
         "checkout" -> {
             CheckoutScreen(
                 authViewModel = authViewModel,
@@ -115,5 +138,6 @@ fun AppNavigation() {
                 }
             )
         }
+
     }
 }

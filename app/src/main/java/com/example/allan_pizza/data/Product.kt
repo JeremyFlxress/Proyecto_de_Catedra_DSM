@@ -8,5 +8,6 @@ data class Product(
     val name: String = "",
     val price: Double = 0.0,
     val imageUrl: String = "", // URL de la imagen
-    val description: String = ""
+    val description: String = "",
+    val category: String = "Producto"
 )

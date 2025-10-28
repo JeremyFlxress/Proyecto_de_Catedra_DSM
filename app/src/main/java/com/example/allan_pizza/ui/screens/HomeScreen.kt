@@ -1,5 +1,6 @@
 package com.example.allan_pizza.ui.screens
 
+import androidx.compose.material.icons.filled.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,7 +54,8 @@ fun HomeScreen(
     cartViewModel: CartViewModel,
     onNavigateToOrderVerification: () -> Unit = {},
     onNavigateToOrderHistory: () -> Unit = {},
-    onNavigateToCheckout: () -> Unit
+    onNavigateToCheckout: () -> Unit,
+    onComboClick: (Product) -> Unit
 ) {
     val productRepository = remember { ProductRepository() }
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -62,21 +64,39 @@ fun HomeScreen(
     val totalCartItems by cartViewModel.totalItems.collectAsState()
     val totalCartPrice by cartViewModel.totalPrice.collectAsState()
     val products by productRepository.productsFlow.collectAsState()
-    var currentPage by remember {mutableStateOf(1)}
-    val itemsPerPage = 5
+
     val allProducts by productRepository.productsFlow.collectAsState()
-    val totalPages = if (allProducts.isEmpty()) {
-        1
-    }else {
-        ceil(allProducts.size.toDouble() / itemsPerPage).toInt()
+    //filtrar productos y combos
+    val categories = listOf("Todos", "Productos", "Combos")
+    var selectedCategory by remember { mutableStateOf(categories[0]) }
+
+    val filteredProducts = remember(selectedCategory, allProducts) {
+        when (selectedCategory) {
+            "Productos" -> allProducts.filter { it.category == "Producto" }
+            "Combos" -> allProducts.filter { it.category == "Combo" }
+            else -> allProducts // "Todos"
+        }
     }
-    val paginatedProducts = remember(currentPage, allProducts) {
-        if (allProducts.isNotEmpty()) {
-            val startIndex = (currentPage - 1) * itemsPerPage // 'coerceAtMost' evita que el índice se pase del tamaño de la lista
-            val endIndex = (startIndex + itemsPerPage).coerceAtMost(allProducts.size)
-            allProducts.slice(startIndex until endIndex)
+    var currentPage by remember { mutableStateOf(1) }
+    val itemsPerPage = 5
+
+    // ¡IMPORTANTE! La paginación ahora se basa en 'filteredProducts'
+    val totalPages = if (filteredProducts.isEmpty()) { 1 } else {
+        ceil(filteredProducts.size.toDouble() / itemsPerPage).toInt()
+    }
+
+    // Resetea a página 1 si el filtro cambia y la página actual queda fuera de rango
+    if (currentPage > totalPages) {
+        currentPage = 1
+    }
+
+    val paginatedProducts = remember(currentPage, filteredProducts) {
+        if (filteredProducts.isNotEmpty()) {
+            val startIndex = (currentPage - 1) * itemsPerPage
+            val endIndex = (startIndex + itemsPerPage).coerceAtMost(filteredProducts.size)
+            filteredProducts.slice(startIndex until endIndex)
         } else {
-            emptyList() // Lista vacía si no hay productos
+            emptyList()
         }
     }
     val banners = remember {
@@ -264,6 +284,36 @@ fun HomeScreen(
                     .padding(vertical = 8.dp)
             )
 
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            ) {
+                categories.forEach { category ->
+                    FilterChip(
+                        selected = (category == selectedCategory),
+                        onClick = {
+                            selectedCategory = category
+                            currentPage = 1 // Resetea la paginación al cambiar de filtro
+                        },
+                        label = { Text(category, fontWeight = FontWeight.SemiBold) },
+                        leadingIcon = if (category == selectedCategory) {
+                            { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
+                        } else {
+                            null
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Color(0xFFE53935).copy(alpha = 0.2f),
+                            selectedLabelColor = Color(0xFFE53935),
+                            selectedLeadingIconColor = Color(0xFFE53935)
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
+            }
+
+
             // 📋 Lista de productos
             LazyColumn(
                 modifier = Modifier
@@ -274,16 +324,28 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(paginatedProducts) { product ->
-                    ProductCard(
-                        product = product,
-                        onAddToCart = {
-                            if (isLoggedIn) {
-                                cartViewModel.addToCart(product)
-                            } else {
-                                showLoginDialog = true
+                    Box(
+                        modifier = Modifier.clickable(
+                            // Habilita el clic SÓLO si es un combo
+                            enabled = product.category == "Combo",
+                            onClick = {
+                                // Esta lambda solo se ejecuta si está habilitada
+                                onComboClick(product)
                             }
-                        }
-                    )
+                        )
+                    ) {
+                        ProductCard(
+                            product = product,
+                            onAddToCart = {
+                                if (isLoggedIn) {
+                                    cartViewModel.addToCart(product)
+                                } else {
+                                    showLoginDialog = true
+                                }
+                            }
+                        )
+                    }
+                    // --- FIN DE LA MODIFICACIÓN ---
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
