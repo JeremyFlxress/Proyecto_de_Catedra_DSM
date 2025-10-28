@@ -38,6 +38,12 @@ import com.example.allan_pizza.data.ProductRepository
 import com.example.allan_pizza.data.Product
 import com.example.allan_pizza.viewmodel.AuthViewModel
 import com.example.allan_pizza.viewmodel.CartViewModel
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import kotlin.math.ceil
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +62,23 @@ fun HomeScreen(
     val totalCartItems by cartViewModel.totalItems.collectAsState()
     val totalCartPrice by cartViewModel.totalPrice.collectAsState()
     val products by productRepository.productsFlow.collectAsState()
+    var currentPage by remember {mutableStateOf(1)}
+    val itemsPerPage = 5
+    val allProducts by productRepository.productsFlow.collectAsState()
+    val totalPages = if (allProducts.isEmpty()) {
+        1
+    }else {
+        ceil(allProducts.size.toDouble() / itemsPerPage).toInt()
+    }
+    val paginatedProducts = remember(currentPage, allProducts) {
+        if (allProducts.isNotEmpty()) {
+            val startIndex = (currentPage - 1) * itemsPerPage // 'coerceAtMost' evita que el índice se pase del tamaño de la lista
+            val endIndex = (startIndex + itemsPerPage).coerceAtMost(allProducts.size)
+            allProducts.slice(startIndex until endIndex)
+        } else {
+            emptyList() // Lista vacía si no hay productos
+        }
+    }
     val banners = remember {
         listOf(
             BannerItem(
@@ -246,10 +269,11 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .weight(1f)
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(products) { product ->
+                items(paginatedProducts) { product ->
                     ProductCard(
                         product = product,
                         onAddToCart = {
@@ -263,6 +287,16 @@ fun HomeScreen(
                 }
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
+            PaginationControls(
+                currentPage = currentPage,
+                totalPages = totalPages,
+                onPrevious = {
+                    if (currentPage > 1) currentPage--
+                },
+                onNext = {
+                    if (currentPage < totalPages) currentPage++
+                }
+            )
         }
 
         // ✅ Diálogo de inicio de sesión
@@ -346,5 +380,59 @@ fun HomeScreen(
             }
         }
 
-    } // Fin de Box principal
+    }
+}
+
+@Composable
+private fun PaginationControls(
+    modifier: Modifier = Modifier,
+    currentPage: Int,
+    totalPages: Int,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit
+) {
+    // No mostrar los controles si solo hay 1
+    if (totalPages <= 1) {
+        return
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Botón "Anterior"
+        IconButton(
+            onClick = onPrevious,
+            enabled = currentPage > 1, // Deshabilitado en la página 1
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = Color(0xFFE53935), // Rojo
+                disabledContentColor = Color.Gray
+            )
+        ) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Página anterior")
+        }
+
+        // Texto "Página X de Y"
+        Text(
+            text = "Página $currentPage de $totalPages",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+
+        // Botón "Siguiente"
+        IconButton(
+            onClick = onNext,
+            enabled = currentPage < totalPages, // Deshabilitado en la última página
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = Color(0xFFE53935), // Rojo
+                disabledContentColor = Color.Gray
+            )
+        ) {
+            Icon(Icons.Default.ArrowForward, contentDescription = "Página siguiente")
+        }
+    }
 }
