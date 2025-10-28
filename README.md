@@ -21,6 +21,7 @@ A continuación se encuentran los enlaces a los entregables clave del proyecto:
 
 * **Documento Final (PDF):** https://drive.google.com/drive/folders/1_aGv6JtdPsKjRsTo8MjiGMNcKcVkkoD0?usp=drive_link
 * **Mockups de Fase I (Figma):** https://www.figma.com/design/5MvnZQ4va7b3ikI2Uj9w3u/DSM-ALLAN-S-PIZZA-MOCKUPS?node-id=124-156&t=EOlV4L1bIKfePDWZ-1
+* **APK:** https://drive.google.com/drive/folders/1Bue1t_qhY9NdwGFUArJM9qIRdPEDkMv9?usp=sharing
 
 ---
 
