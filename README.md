@@ -4,6 +4,8 @@
 
 El proyecto utiliza Firebase como backend para la autenticación de usuarios, la base de datos en tiempo real (Firestore) para productos, carritos y pedidos.
 
+Adjuntamos el enlace de la aplicación admin para poder interactuar con el usuario y cambiar estados: https://github.com/JxsueMelendez/DSM_AdminApp.git
+
 ---
 
 ## 📋 Gestión del Proyecto
